@@ -9,19 +9,19 @@ number:
 date:
 consensus: true
 v: 3
-area: RTG
-workgroup: RTGWG
+area: "Routing"
+workgroup: "Routing Area Working Group"
 keyword:
  - congestion
  - optimization
  - AI-native
 venue:
-  group: WG
-  type: Working Group
-  mail: WG@example.com
-  arch: https://example.com/WG
-  github: USER/REPO
-  latest: https://example.com/LATEST
+  group: "Routing Area Working Group"
+  type: "Working Group"
+  mail: "rtgwg@ietf.org"
+  arch: "https://mailarchive.ietf.org/arch/browse/rtgwg/"
+  github: "astone282/draft-stone-rtgwg-telemetry-optimization"
+  latest: "https://astone282.github.io/draft-stone-rtgwg-telemetry-optimization/draft-stone-rtgwg-telemetry-optimization.html"
 
 author:
  -

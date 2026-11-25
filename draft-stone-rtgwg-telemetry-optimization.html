@@ -7,12 +7,25 @@
 <title>Telemetry-Driven Congestion Optimization</title>
 <meta content="Andrew Stone" name="author">
 <meta content="
-       TODO Abstract 
+       This document describes Telemetry-Driven Congestion Optimization
+(TDCO), a solution in which a centralized controller uses
+near-real-time per-tunnel demand and per-interface traffic
+measurements to prevent and alleviate link overload autonomously.
+The controller changes the paths of the tunnels under its control
+through existing mechanisms such as the Path Computation Element
+Communication Protocol (PCEP), BGP Segment Routing (SR) Policy, or
+NETCONF/YANG. TDCO avoids placing Traffic Engineering (TE)
+tunnels where they would cause overload and, when overload occurs,
+re-routes only as many TE tunnels as are needed to relieve the
+overload onto paths with spare capacity that meet their full TE
+constraints. 
+       This document describes the solution and the safety properties
+needed to operate it without operator approval of individual
+actions. It defines no protocol extensions. 
     " name="description">
 <meta content="xml2rfc 3.35.0" name="generator">
 <meta content="congestion" name="keyword">
 <meta content="optimization" name="keyword">
-<meta content="AI-native" name="keyword">
 <meta content="draft-stone-rtgwg-telemetry-optimization-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.35.0
@@ -1047,7 +1060,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Stone</td>
-<td class="center">Expires 27 May 2027</td>
+<td class="center">Expires 29 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1055,17 +1068,17 @@ svg {
 <div id="internal-metadata" class="document-information">
 <dl id="identifiers">
 <dt class="label-workgroup">Workgroup:</dt>
-<dd class="workgroup">RTGWG</dd>
+<dd class="workgroup">Routing Area Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
 <dd class="internet-draft">draft-stone-rtgwg-telemetry-optimization-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-11-23" class="published">23 November 2026</time>
+<time datetime="2026-11-25" class="published">25 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-27">27 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-29">29 May 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1078,22 +1091,21 @@ svg {
 <h1 id="title">Telemetry-Driven Congestion Optimization</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">TODO Abstract<a href="#section-abstract-1" class="pilcrow">¶</a></p>
-</section>
-<section class="note rfcEditorRemove" id="section-note.1">
-      <h2 id="name-about-this-document">
-<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
-      </h2>
-<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
-<p id="section-note.1-2">
-        The latest revision of this draft can be found at <span><a href="https://example.com/LATEST">https://example.com/LATEST</a></span>.
-        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-stone-rtgwg-telemetry-optimization/">https://datatracker.ietf.org/doc/draft-stone-rtgwg-telemetry-optimization/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
-<p id="section-note.1-3">
-        Discussion of this document takes place on the
-        WG Working Group mailing list (<span><a href="mailto:WG@example.com">mailto:WG@example.com</a></span>),
-        which is archived at <span><a href="https://example.com/WG">https://example.com/WG</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
-<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
-        <span><a href="https://github.com/USER/REPO">https://github.com/USER/REPO</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document describes Telemetry-Driven Congestion Optimization
+(TDCO), a solution in which a centralized controller uses
+near-real-time per-tunnel demand and per-interface traffic
+measurements to prevent and alleviate link overload autonomously.
+The controller changes the paths of the tunnels under its control
+through existing mechanisms such as the Path Computation Element
+Communication Protocol (PCEP), BGP Segment Routing (SR) Policy, or
+NETCONF/YANG. TDCO avoids placing Traffic Engineering (TE)
+tunnels where they would cause overload and, when overload occurs,
+re-routes only as many TE tunnels as are needed to relieve the
+overload onto paths with spare capacity that meet their full TE
+constraints.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">This document describes the solution and the safety properties
+needed to operate it without operator approval of individual
+actions. It defines no protocol extensions.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1114,7 +1126,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 27 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 29 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1145,91 +1157,1101 @@ svg {
 <nav class="toc"><ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-relationship-to-existing-wo" class="internal xref">Relationship to Existing Work</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
-            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-terminology" class="internal xref">Terminology</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-the-controller" class="internal xref">The Controller</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-enacting-path-changes" class="internal xref">Enacting Path Changes</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-optimization-policy" class="internal xref">Optimization Policy</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-inputs" class="internal xref">Inputs</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-topology-and-capacity" class="internal xref">Topology and Capacity</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-te-tunnel-demand" class="internal xref">TE Tunnel Demand</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-link-load" class="internal xref">Link Load</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-in-flight-path-changes" class="internal xref">In-Flight Path Changes</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-proactive-component-avoidin" class="internal xref">Proactive Component: Avoiding Busy Links</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-reactive-component-overload" class="internal xref">Reactive Component: Overload Alleviation</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-path-computation" class="internal xref">Path Computation</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-bandwidth-management" class="internal xref">Bandwidth Management</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-rsvp-te-bandwidth-signallin" class="internal xref">RSVP-TE Bandwidth Signalling</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-operational-considerations" class="internal xref">Operational Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-applicability" class="internal xref">Applicability</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
+                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-safety-controls" class="internal xref">Safety Controls</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4">
+                <p id="section-toc.1-1.9.2.4.1"><a href="#section-9.4" class="auto internal xref">9.4</a>.  <a href="#name-operator-control-and-visibi" class="internal xref">Operator Control and Visibility</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
+                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="auto internal xref">12.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
+                <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
 </section>
 </div>
-<div id="intro">
+<div id="introduction">
 <section id="section-1">
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">TODO Introduction<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-1">Network links can become overloaded when traffic grows unexpectedly,
+when link capacity is degraded, or when traffic is re-routed after a
+failure.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">An overloaded link degrades the traffic that it carries. Negative
+effects may begin before a link is completely full, because short
+traffic bursts can exceed the link capacity even when the average load
+over a measurement interval is below it.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">Alleviating an overload generally requires moving only some of the
+traffic on the link, onto paths that have spare capacity and that
+still meet the Traffic Engineering (TE) requirements of the traffic
+that is moved. A router upstream of an
+overloaded link can steer traffic quickly, but it does not in general
+know the load on the links of the alternate path or the TE
+constraints of the traffic that it steers. Network-wide
+re-optimization and capacity planning take both into account, but
+they operate on longer timescales and often move many TE tunnels at
+once from a snapshot. A centralized controller that holds a network-wide view of the
+topology, the TE tunnel paths, and the measured traffic is in a
+position to close these gaps.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">This document describes Telemetry-Driven Congestion Optimization
+(TDCO), in which a centralized controller prevents and alleviates
+link overload by steering the TE tunnels whose paths it controls and
+that operator policy includes in optimization. The controller changes
+those paths through existing mechanisms, for example the Path
+Computation Element Communication Protocol (PCEP), BGP Segment
+Routing (SR) Policy, or NETCONF/YANG.
+The controller combines the TE topology and link
+capacities, the measured demand of each TE tunnel, and the measured
+traffic on each interface into a view of the load on every link, and
+uses that view in two ways:<a href="#section-1-4" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-1-5">
+        <dt id="section-1-5.1">Proactive component:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.2">
+          <p id="section-1-5.2.1">When the controller computes a path for a TE tunnel whose demand is known,
+it prefers paths on which that demand does not push any link past
+the trigger threshold. Traffic is therefore kept off links that are
+about to become overloaded, not only removed from links that already
+are.<a href="#section-1-5.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-5.3">Reactive component:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.4">
+          <p id="section-1-5.4.1">When the measured load on one or more links exceeds the trigger
+threshold, the controller re-routes only as many TE tunnels as are
+needed to bring each of those links back to the target threshold, preferring
+paths that do not fill any other link past the target threshold. Subsequent telemetry confirms the effect and drives any
+further adjustment, forming a closed loop.<a href="#section-1-5.4.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-1-6">A TE tunnel that was moved off a link returns to it only if the link
+then stays at or below the target threshold. This keeps headroom on
+the link and prevents TE tunnels from being moved back and forth.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<p id="section-1-7">TDCO has three defining properties:<a href="#section-1-7" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-1-8">
+        <dt id="section-1-8.1">No human in the loop:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-8.2">
+          <p id="section-1-8.2.1">The controller detects the overload, selects the TE tunnels to move,
+computes alternate paths, and re-routes the selected TE tunnels, all
+without operator approval of individual actions. Instead, safe
+operation relies on automated safety controls, such as requiring an
+overload to be sustained before acting, suspending optimization when
+telemetry is stale, and damping re-routes, as described in
+<a href="#safety" class="auto internal xref">Section 9.3</a>.<a href="#section-1-8.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-8.3">Measured demand:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-8.4">
+          <p id="section-1-8.4.1">TE tunnel demand is learned from near-real-time streaming telemetry,
+flow collection, or PCEP performance metrics, rather than from
+signalled reservations or planning data.<a href="#section-1-8.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-8.5">Full TE-based computation:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-8.6">
+          <p id="section-1-8.6.1">Paths are computed with each TE tunnel's complete TE constraint set
+and with bandwidth awareness, so that offloaded traffic does not
+overload other links or violate TE policies or Service Level
+Agreements (SLAs). Adjustments are made by changing the paths of
+TE tunnels at their headends, and are incremental.<a href="#section-1-8.6.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-1-9">The purpose of this document is to describe this solution, and the
+safety properties needed to run it without operator approval of
+individual actions, so that it can be deployed with a common
+understanding of its behavior.<a href="#section-1-9" class="pilcrow">¶</a></p>
+<p id="section-1-10">TDCO applies equally to RSVP-TE signalled LSPs and to SR Policies on
+the SR-MPLS and SRv6 data planes, and accounts for both in a single
+view of link load. This document does not define new protocol
+mechanisms. The algorithms used to select and place TE tunnels are
+left to implementations.<a href="#section-1-10" class="pilcrow">¶</a></p>
+<div id="existing-work">
+<section id="section-1.1">
+        <h3 id="name-relationship-to-existing-wo">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-relationship-to-existing-wo" class="section-name selfRef">Relationship to Existing Work</a>
+        </h3>
+<p id="section-1.1-1">TDCO builds on and is related to the following work:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.1-2.1">
+            <p id="section-1.1-2.1.1"><span>[<a href="#RFC9522" class="cite xref">RFC9522</a>]</span> gives an overview of traffic engineering,
+including online, reactive congestion management. TDCO is an
+instance of that approach, carried out by a controller.<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-2.2">
+            <p id="section-1.1-2.2.1"><span>[<a href="#RFC8051" class="cite xref">RFC8051</a>]</span> describes use cases for stateful PCE, including
+optimization based on the traffic that LSPs carry. TDCO describes
+one such use case in detail, including the safety properties needed
+to run it autonomously, and applies it to any controller that can
+change TE tunnel paths, whether or not that controller is a PCE.<a href="#section-1.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-2.3">
+            <p id="section-1.1-2.3.1"><span>[<a href="#RFC8426" class="cite xref">RFC8426</a>]</span> describes models for the coexistence of RSVP-TE and SR
+LSPs. TDCO follows the centralized management of available capacity
+model (<span><a href="https://rfc-editor.org/rfc/rfc8426#section-3.2" class="relref">Section 3.2</a> of [<a href="#RFC8426" class="cite xref">RFC8426</a>]</span>).<a href="#section-1.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
-<div id="conventions-and-definitions">
+</section>
+</div>
+<div id="terminology">
 <section id="section-2">
-      <h2 id="name-conventions-and-definitions">
-<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      <h2 id="name-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
       </h2>
-<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
-"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
-described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
-appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-1">This document uses the terms Path Computation Element (PCE), Path
+Computation Client (PCC), and Label Switched Path (LSP) as defined in
+<span>[<a href="#RFC4655" class="cite xref">RFC4655</a>]</span> and <span>[<a href="#RFC5440" class="cite xref">RFC5440</a>]</span>, and the stateful PCE terms delegation and
+PCE-initiated LSP as defined in <span>[<a href="#RFC8231" class="cite xref">RFC8231</a>]</span> and <span>[<a href="#RFC8281" class="cite xref">RFC8281</a>]</span>.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">Where this document uses the term LSP in a general sense, the
+concepts described apply equally to SR Policies on both the SR-MPLS
+and SRv6 data planes.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">In addition, this document uses the following terms:<a href="#section-2-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-4">
+        <dt id="section-2-4.1">Controller:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.2">
+          <p id="section-2-4.2.1">A centralized entity that performs TDCO for the TE tunnels whose
+paths it controls. A stateful PCE <span>[<a href="#RFC8231" class="cite xref">RFC8231</a>]</span> is
+one example of a controller.<a href="#section-2-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.3">TE Tunnel:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.4">
+          <p id="section-2-4.4.1">An SR Policy <span>[<a href="#RFC9256" class="cite xref">RFC9256</a>]</span> or an RSVP-TE signalled LSP <span>[<a href="#RFC3209" class="cite xref">RFC3209</a>]</span>
+whose path the controller is permitted to change, using one of the
+mechanisms described in <a href="#enactment" class="auto internal xref">Section 3.1</a>. Examples include LSPs
+delegated to the controller <span>[<a href="#RFC8231" class="cite xref">RFC8231</a>]</span>, LSPs initiated by the
+controller <span>[<a href="#RFC8281" class="cite xref">RFC8281</a>]</span>, and SR Policy candidate paths that the
+controller originates.<a href="#section-2-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.5">TE tunnel demand:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.6">
+          <p id="section-2-4.6.1">The measured rate of traffic carried by a TE tunnel, as learned by
+the controller from streaming telemetry, flow collection, or PCEP
+performance metrics. TE tunnel demand is distinct from any bandwidth
+that is signalled or reserved for the TE tunnel.<a href="#section-2-4.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.7">Dark traffic:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.8">
+          <p id="section-2-4.8.1">Traffic carried on a link that is not carried in a TE tunnel, for
+example native IPv4, native IPv6, or MPLS traffic that follows
+shortest paths such as Label Distribution Protocol (LDP) <span>[<a href="#RFC5036" class="cite xref">RFC5036</a>]</span>,
+native SR, or Flexible Algorithm <span>[<a href="#RFC9350" class="cite xref">RFC9350</a>]</span> traffic.<a href="#section-2-4.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.9">Link load:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.10">
+          <p id="section-2-4.10.1">The load on one direction of a link, as determined by the controller
+from the measured utilization learned through streaming telemetry or
+from the utilization advertised in the IGP or BGP-LS, adjusted for TE
+tunnel path changes that are in flight and for
+bandwidth reservations that the measurements do not reflect. Link
+load includes dark traffic (see <a href="#link-load" class="auto internal xref">Section 4.3</a>). Link load is the
+value against which overload detection and placement decisions are
+checked.<a href="#section-2-4.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.11">Trigger threshold:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.12">
+          <p id="section-2-4.12.1">The configured link load, expressed as an absolute value or as a
+percentage of link capacity, above which a link is considered
+overloaded.<a href="#section-2-4.12.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.13">Target threshold:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.14">
+          <p id="section-2-4.14.1">The configured link load, less than or equal to the trigger threshold, to which
+the reactive component of TDCO aims to bring an overloaded link. It
+is also the highest load to which a link may be filled when moving TE
+tunnels that still have a valid path.<a href="#section-2-4.14.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.15">Link overload:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.16">
+          <p id="section-2-4.16.1">The condition in which the link load of a link exceeds its trigger
+threshold.<a href="#section-2-4.16.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.17">Mandatory placement:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.18">
+          <p id="section-2-4.18.1">A path computation for a TE tunnel that has no valid path and
+therefore must be placed, for example a new TE tunnel, a TE tunnel
+whose path has failed, or a TE tunnel whose path violates its
+constraints. All other path changes move a TE tunnel that already
+has a valid path; they are discretionary and are checked against the
+target threshold (see <a href="#path-computation" class="auto internal xref">Section 7</a>).<a href="#section-2-4.18.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.19">Least congested path:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.20">
+          <p id="section-2-4.20.1">Among the paths that satisfy the TE constraints of a TE tunnel, the
+path that the controller considers to be the least congested. It is
+used only when no path that satisfies those constraints keeps every
+link at or below the applicable threshold. How congestion is
+compared between paths, and how the optimization objective is used
+among equally congested paths, is left to the implementation.<a href="#section-2-4.20.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.21">Optimization policy:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.22">
+          <p id="section-2-4.22.1">The operator policy that determines which TE tunnels are included
+in TDCO and which are excluded from it (see <a href="#policy" class="auto internal xref">Section 3.2</a>).<a href="#section-2-4.22.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
 </section>
 </div>
-<div id="security">
+<div id="controller">
 <section id="section-3">
-      <h2 id="name-security-considerations">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      <h2 id="name-the-controller">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-the-controller" class="section-name selfRef">The Controller</a>
       </h2>
-<p id="section-3-1">TODO Security<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-1">In TDCO, the controller is a centralized entity that computes and
+changes the paths of the TE tunnels under its control. The
+controller:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-2.1">
+          <p id="section-3-2.1.1">Maintains a network-wide view that combines the TE topology and link
+capacities, the state and paths of the TE tunnels, the bandwidth
+accounting for each link and the measured traffic.<a href="#section-3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-2.2">
+          <p id="section-3-2.2.1">Decides on its own initiative when a TE tunnel is to be placed or
+moved, and onto which path, using the proactive and
+reactive components.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-2.3">
+          <p id="section-3-2.3.1">Enacts those decisions by changing the paths of TE tunnels at their
+headends.<a href="#section-3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-2.4">
+          <p id="section-3-2.4.1">Observes the result and makes further adjustments as needed.<a href="#section-3-2.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-3-3">Because the network-wide state and the decisions are held in one
+place, the controller can coordinate the moves that it makes, account for TE
+tunnels whose path changes are still in flight, and apply the
+automated safety controls described in <a href="#safety" class="auto internal xref">Section 9.3</a>.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<div id="enactment">
+<section id="section-3.1">
+        <h3 id="name-enacting-path-changes">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-enacting-path-changes" class="section-name selfRef">Enacting Path Changes</a>
+        </h3>
+<p id="section-3.1-1">TDCO does not depend on a particular mechanism for changing the path
+of a TE tunnel. The controller needs a mechanism that lets it set the
+path of a TE tunnel at its headend, learn the current state and path
+of that TE tunnel, and learn when a path change is complete. Existing
+mechanisms include:<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.1-2">
+          <dt id="section-3.1-2.1">PCEP:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-2.2">
+            <p id="section-3.1-2.2.1">A stateful PCE <span>[<a href="#RFC8231" class="cite xref">RFC8231</a>]</span> updates the paths of LSPs that are
+delegated to it, and can create LSPs itself <span>[<a href="#RFC8281" class="cite xref">RFC8281</a>]</span>. Segment
+Routing paths are carried using the extensions for SR-MPLS
+<span>[<a href="#RFC8664" class="cite xref">RFC8664</a>]</span> and SRv6 <span>[<a href="#RFC9603" class="cite xref">RFC9603</a>]</span>. PCEP state reports tell the
+controller the current path and operational state of each LSP.<a href="#section-3.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-2.3">BGP SR Policy:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-2.4">
+            <p id="section-3.1-2.4.1">The controller originates SR Policy candidate paths and advertises
+them to headends in BGP <span>[<a href="#RFC9830" class="cite xref">RFC9830</a>]</span>. This mechanism applies to SR
+Policies only. Changing the path of a TE tunnel means advertising an
+updated candidate path. BGP SR Policy does not itself report the
+state of the SR Policy at the headend. The controller learns that
+state by other means, for example from the BGP-LS advertisement of
+SR Policies <span>[<a href="#RFC9857" class="cite xref">RFC9857</a>]</span>.<a href="#section-3.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-2.5">NETCONF/YANG:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-2.6">
+            <p id="section-3.1-2.6.1">The controller configures TE tunnel paths on the headend through
+NETCONF <span>[<a href="#RFC6241" class="cite xref">RFC6241</a>]</span>, using YANG <span>[<a href="#RFC7950" class="cite xref">RFC7950</a>]</span> data models for TE
+tunnels or SR Policies, and reads the operational state through the
+same data models.<a href="#section-3.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-3.1-3">A single controller can use different mechanisms for different TE
+tunnels or headends. The procedures in this document apply in the same
+way whichever mechanism is used. The mechanisms differ in how quickly
+a path change takes effect and in how the controller learns that it
+has taken effect. These differences affect the in-flight accounting
+described in <a href="#in-flight" class="auto internal xref">Section 4.4</a>.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.1-4">When this document refers to a TE tunnel that is "controlled by" the
+controller, it means a TE tunnel whose path the controller is
+permitted to change through one of these mechanisms.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="iana">
+<div id="policy">
+<section id="section-3.2">
+        <h3 id="name-optimization-policy">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-optimization-policy" class="section-name selfRef">Optimization Policy</a>
+        </h3>
+<p id="section-3.2-1">An optimization policy configured by the operator determines which
+controlled TE tunnels are included in TDCO and which are excluded
+from it. An excluded TE tunnel is not moved by the reactive component
+and is not moved by TDCO back toward its preferred path. It still
+receives a path when it needs a mandatory placement.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">The demand of an excluded TE tunnel remains part of the link load, in
+the same way as the demand of TE tunnels that are not controlled by
+the controller, and is taken into account when other TE tunnels are
+placed or moved.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="inputs">
 <section id="section-4">
-      <h2 id="name-iana-considerations">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      <h2 id="name-inputs">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-inputs" class="section-name selfRef">Inputs</a>
       </h2>
-<p id="section-4-1">This document has no IANA actions.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div id="topology">
+<section id="section-4.1">
+        <h3 id="name-topology-and-capacity">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-topology-and-capacity" class="section-name selfRef">Topology and Capacity</a>
+        </h3>
+<p id="section-4.1-1">The controller learns the network topology, link capacities, and TE
+attributes through BGP-LS <span>[<a href="#RFC9552" class="cite xref">RFC9552</a>]</span> or by participating in the IGP.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="sec-normative-references">
+<div id="demand">
+<section id="section-4.2">
+        <h3 id="name-te-tunnel-demand">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-te-tunnel-demand" class="section-name selfRef">TE Tunnel Demand</a>
+        </h3>
+<p id="section-4.2-1">The controller learns the actual traffic demand of each TE tunnel from
+near-real-time measurements. Possible sources include:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.2-2.1">
+            <p id="section-4.2-2.1.1">Streaming telemetry, for example gNMI over gRPC <span>[<a href="#GNMI" class="cite xref">GNMI</a>]</span>.<a href="#section-4.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.2-2.2">
+            <p id="section-4.2-2.2.1">Flow collection, for example IPFIX <span>[<a href="#RFC7011" class="cite xref">RFC7011</a>]</span>.<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.2-2.3">
+            <p id="section-4.2-2.3.1">PCEP performance metrics sent by the headends
+<span>[<a href="#I-D.gandhi-pce-pm" class="cite xref">I-D.gandhi-pce-pm</a>]</span>.<a href="#section-4.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.2-3">Demand is tracked per TE tunnel. Because the controller uses measured demand
+rather than signalled reservations or planning data, its view reflects
+the traffic that the network is actually carrying.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="link-load">
+<section id="section-4.3">
+        <h3 id="name-link-load">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-link-load" class="section-name selfRef">Link Load</a>
+        </h3>
+<p id="section-4.3-1">The controller learns the load on each link from near-real-time
+measurements. Possible sources include:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.3-2.1">
+            <p id="section-4.3-2.1.1">Streaming telemetry of interface counters, for example gNMI over
+gRPC <span>[<a href="#GNMI" class="cite xref">GNMI</a>]</span>.<a href="#section-4.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-2.2">
+            <p id="section-4.3-2.2.1">The Unidirectional Utilized Bandwidth advertised in the IGP TE
+metric extensions <span>[<a href="#RFC7471" class="cite xref">RFC7471</a>]</span> <span>[<a href="#RFC8570" class="cite xref">RFC8570</a>]</span>.<a href="#section-4.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-2.3">
+            <p id="section-4.3-2.3.1">The Unidirectional Utilized Bandwidth carried in BGP-LS <span>[<a href="#RFC8571" class="cite xref">RFC8571</a>]</span>.<a href="#section-4.3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.3-3">Each of these sources measures all traffic on the link, including dark traffic. Dark traffic
+is therefore accounted for in link load, even though it is not steered.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">The sources differ in the detail they provide. Streaming telemetry can
+break the load down by traffic type, for example native IPv4, native
+IPv6, and MPLS traffic, although the breakdowns available differ
+between network device platforms. The IGP and BGP-LS advertise a
+single utilization value for each direction, and how current that
+value is depends on the advertisement interval and on any thresholds
+that govern re-advertisement. The sources can be used alone or
+together.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.3-5">The controller combines the measured interface traffic and the measured TE
+tunnel demand to determine the link load. The exact formula is
+implementation-specific.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+<p id="section-4.3-6">The link load is used for detecting overload and for placement
+decisions.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="in-flight">
+<section id="section-4.4">
+        <h3 id="name-in-flight-path-changes">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-in-flight-path-changes" class="section-name selfRef">In-Flight Path Changes</a>
+        </h3>
+<p id="section-4.4-1">Telemetry lags behind path changes. After a TE tunnel is moved, for
+example by make-before-break, it can take one or more measurement
+intervals before the measurements show its traffic leaving the old
+path and arriving on the new one.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-2">This needs to be accounted for in both directions:<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.4-3.1">
+            <p id="section-4.4-3.1.1">On the links of the old path, the TE tunnel's demand is treated as
+already removed. Otherwise an overloaded link continues to appear
+overloaded, and the controller moves more TE tunnels than are needed.<a href="#section-4.4-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.4-3.2">
+            <p id="section-4.4-3.2.1">On the links of the new path, the TE tunnel's demand is treated as
+already added. Otherwise the capacity taken by the move still appears
+free, and the controller can give it to another TE tunnel.<a href="#section-4.4-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.4-4">The controller applies these adjustments until the move is complete
+and the measurements reflect it. How completion is determined, and how
+the adjustments are made, are implementation-specific.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
+<p id="section-4.4-5">Responsiveness is bounded by the telemetry or collection interval and
+by any holding timers that apply before a threshold crossing is acted
+upon.<a href="#section-4.4-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="proactive">
 <section id="section-5">
-      <h2 id="name-normative-references">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+      <h2 id="name-proactive-component-avoidin">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-proactive-component-avoidin" class="section-name selfRef">Proactive Component: Avoiding Busy Links</a>
       </h2>
+<p id="section-5-1">The controller needs to perform a mandatory placement for numerous reasons,
+including, but not limited to, the creation of a new TE tunnel, a link
+failure, or a constraint violation.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">When the controller performs a mandatory placement for a TE tunnel whose
+demand is known, it prefers any path on which the TE tunnel's demand
+does not push the link load of any link past the trigger
+threshold. This is a preference rather than a constraint: if no path
+avoids the trigger threshold, the TE tunnel is placed on the least
+congested path that satisfies its other TE constraints, rather than
+being rejected, and any resulting overload is handled
+by the reactive component. Traffic is therefore steered away
+from links that would become overloaded, not only removed from links that
+already are.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">A TE tunnel that was moved off a link by the reactive component may
+revert to its preferred path through normal re-optimization, only when
+every link of that path stays at or below the target threshold after the
+TE tunnel's demand is added.<a href="#section-5-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="reactive">
+<section id="section-6">
+      <h2 id="name-reactive-component-overload">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-reactive-component-overload" class="section-name selfRef">Reactive Component: Overload Alleviation</a>
+      </h2>
+<p id="section-6-1">When the measured load on a link exceeds the trigger threshold, and
+this is sustained as described in <a href="#safety" class="auto internal xref">Section 9.3</a>, the controller calculates
+the excess of the link load above the target threshold. It
+then selects TE tunnels, from those that the optimization policy
+includes in TDCO (see <a href="#policy" class="auto internal xref">Section 3.2</a>), whose combined demand on the link
+covers the excess, and re-routes only those TE tunnels.
+If a selected TE tunnel cannot be placed on an
+alternate path that satisfies its constraints and that does not fill
+any link past the target threshold, it is placed on the least
+congested path that satisfies its constraints, as described in
+<a href="#path-computation" class="auto internal xref">Section 7</a>, and the controller can select other TE tunnels to
+cover the remaining excess.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">One or many links can be overloaded at the same time, for example when
+a failure shifts traffic onto several links. The controller takes all
+of the overloaded links into consideration together when selecting the
+TE tunnels to move, rather than relieving each link in isolation.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-3">The controller aims to move no more TE tunnels than are needed,
+because each move adds signalling load and churn and carries a risk
+of traffic disruption. Choosing the
+smallest set of TE tunnels that covers the excess on every overloaded
+link, given that each TE tunnel needs a feasible alternate path, is a
+combinatorial problem, and
+the fewest TE tunnels are not always the best choice: the largest TE
+tunnels are the hardest to place and the most disruptive to move. The
+choice of which TE tunnels are best suited to be moved is therefore
+left to the implementation.<a href="#section-6-3" class="pilcrow">¶</a></p>
+<p id="section-6-4">Each overloaded link is continuously re-evaluated with new telemetry as
+traffic moves, to ensure that the target threshold is met. During
+re-evaluation, the controller takes into account TE tunnels whose path
+changes are still in flight, so that it does not move
+more TE tunnels than are needed.<a href="#section-6-4" class="pilcrow">¶</a></p>
+<p id="section-6-5">The overload of a link can be unresolvable, for example because it is
+caused mainly by dark traffic, by TE tunnels that are not controlled
+by the controller, or by TE tunnels that the optimization policy
+excludes from TDCO, because no movable TE tunnel has a feasible
+alternate path, or because the demand of a single TE tunnel exceeds
+the headroom of every feasible alternate path. TE tunnels are moved
+as a whole and are not split across paths.<a href="#section-6-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="path-computation">
+<section id="section-7">
+      <h2 id="name-path-computation">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-path-computation" class="section-name selfRef">Path Computation</a>
+      </h2>
+<p id="section-7-1">Alternate paths are computed with each TE tunnel's full TE constraint
+set, for example its metric bounds, affinities, diversity
+requirements, and bidirectional co-routing constraints, and with its
+optimization objective, for example lowest latency. Among the paths
+that satisfy the constraints and keep every link at or below the
+applicable threshold, the controller selects the path that best meets
+the optimization objective. The least congested path is used only
+when no such path exists.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">Path computation is bandwidth-aware: it uses the measured
+demand of the TE tunnel being placed or moved and the link
+load of candidate links, checked against the trigger and
+target thresholds. As a result, traffic
+moved off one link is kept off links that it would overload whenever
+another path allows it, and the TE tunnel's TE requirements continue
+to be met.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-3">The trigger threshold is used to detect an overloaded link and to
+choose a path for a mandatory placement. A mandatory placement avoids
+pushing any link past the trigger threshold when it can. When it
+cannot, the TE tunnel is still placed, on the least congested path,
+and any resulting overload is handled by the reactive component.<a href="#section-7-3" class="pilcrow">¶</a></p>
+<p id="section-7-4">Every other path change, whether made by the reactive component, by a
+TE tunnel reverting to its preferred path, or by re-optimization, uses
+the target threshold. The TE tunnel is moved onto a path on which
+every link stays at or below the target threshold after its demand is
+added. If no such path exists, the TE tunnel stays on its current path
+as long as every link of that path is at or below the trigger
+threshold. Otherwise, it is moved onto the least congested path that
+satisfies its other TE constraints, and any resulting overload is
+handled by the reactive component. When the target is set below the
+trigger, the gap between them leaves headroom, so small increases in
+load do not cause a new overload and TE tunnels are not moved back and
+forth.<a href="#section-7-4" class="pilcrow">¶</a></p>
+<p id="section-7-5">The adjustment is local and incremental. Only the TE tunnels required
+to relieve the overloaded link are moved. The reactive component does
+not perform network-wide re-optimization. Periodic or operator-requested
+re-optimization is a separate process, and the moves that it makes are
+checked against the target threshold.<a href="#section-7-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="bandwidth">
+<section id="section-8">
+      <h2 id="name-bandwidth-management">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-bandwidth-management" class="section-name selfRef">Bandwidth Management</a>
+      </h2>
+<p id="section-8-1">The controller manages bandwidth for both RSVP-TE signalled TE tunnels
+and SR Policies. It maintains the bandwidth accounting for each link
+itself, rather than relying on the network. SR Policies have no per-hop
+reservation state in the network, so the controller is the only place
+where their bandwidth is accounted for. Because the same accounting covers both kinds of TE tunnel,
+RSVP-TE signalled TE tunnels and SR Policies can share links, with
+the placement of each taking into account the bandwidth used by the
+other.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-2">TDCO does not perform bandwidth admission control: bandwidth determines
+where a TE tunnel is placed, not whether it is placed. A TE tunnel is
+never rejected or torn down for lack of bandwidth. When no path that satisfies the TE constraints of the TE
+tunnel has enough headroom for its demand, the TE tunnel is placed on
+the least congested of those paths, for example the path that
+minimizes the highest link load along it, and any resulting overload
+is handled by the reactive component. This applies
+equally to RSVP-TE signalled TE tunnels and SR Policies.<a href="#section-8-2" class="pilcrow">¶</a></p>
+<p id="section-8-3">This is the centralized management of available capacity model
+described in <span><a href="https://rfc-editor.org/rfc/rfc8426#section-3.2" class="relref">Section 3.2</a> of [<a href="#RFC8426" class="cite xref">RFC8426</a>]</span>.<a href="#section-8-3" class="pilcrow">¶</a></p>
+<p id="section-8-4">The controller keeps a single link load for each link, which combines
+the measurement and signalled inputs described in <a href="#link-load" class="auto internal xref">Section 4.3</a> and
+<a href="#rsvp-te" class="auto internal xref">Section 8.1</a>.<a href="#section-8-4" class="pilcrow">¶</a></p>
+<div id="rsvp-te">
+<section id="section-8.1">
+        <h3 id="name-rsvp-te-bandwidth-signallin">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-rsvp-te-bandwidth-signallin" class="section-name selfRef">RSVP-TE Bandwidth Signalling</a>
+        </h3>
+<p id="section-8.1-1">RSVP-TE signalled TE tunnels may or may not signal a bandwidth
+reservation. It is generally assumed that RSVP-TE signalled TE tunnels
+that are controlled by the controller do not signal a bandwidth reservation
+for admission, and that the controller computes and manages their
+bandwidth itself, using telemetry. A signalled reservation causes each node along the
+path to perform its own admission against the signalled value. That
+value can differ from the measured demand that the controller uses.
+Unlike the bandwidth checks made by the controller, which only
+influence path selection, admission at the nodes is a hard check: it can cause a path computed by the
+controller to be rejected, or can cause other LSPs to be preempted.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.1-2">When RSVP-TE signalled TE tunnels do signal a bandwidth reservation,
+the controller can account for the reservation by considering the maximum of
+the signalled bandwidth and the bandwidth measured by telemetry as the
+TE tunnel demand.<a href="#section-8.1-2" class="pilcrow">¶</a></p>
+<p id="section-8.1-3">The controller also accounts for bandwidth reserved by RSVP-TE LSPs that it
+does not control. Such LSPs may still be reported to the controller, or
+may be unknown to it. When an LSP that the controller does not control is
+known to it, for example through PCEP state reports or NETCONF/YANG
+operational state from the headend, the controller learns its
+reservation and path, and can measure its demand using the same
+telemetry sources as for controlled TE tunnels. When an LSP is not known
+to the controller, the controller learns the bandwidth reserved on each link from
+the Unreserved Bandwidth advertised in the IGP TE extensions for OSPF
+(<span><a href="https://rfc-editor.org/rfc/rfc3630#section-2.5.8" class="relref">Section 2.5.8</a> of [<a href="#RFC3630" class="cite xref">RFC3630</a>]</span>) and IS-IS (<span><a href="https://rfc-editor.org/rfc/rfc5305#section-3.6" class="relref">Section 3.6</a> of [<a href="#RFC5305" class="cite xref">RFC5305</a>]</span>),
+or carried as a link attribute in BGP-LS <span>[<a href="#RFC9552" class="cite xref">RFC9552</a>]</span>. In both cases the
+reservation is taken into consideration for the link load.<a href="#section-8.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="operational">
+<section id="section-9">
+      <h2 id="name-operational-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-operational-considerations" class="section-name selfRef">Operational Considerations</a>
+      </h2>
+<p id="section-9-1">TDCO acts on measured traffic without operator approval of individual
+actions. Its safe operation therefore depends on the network it is
+deployed in, on acting only on measurements that are current,
+sustained, and reflect the effect of earlier actions, and on bounding
+how much it changes the network. This section describes where TDCO is
+applicable, what an operator needs to configure, the safety controls
+that an implementation should provide, and how operators retain
+control and visibility. The specific knobs and controls are
+implementation-specific.<a href="#section-9-1" class="pilcrow">¶</a></p>
+<div id="applicability">
+<section id="section-9.1">
+        <h3 id="name-applicability">
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-applicability" class="section-name selfRef">Applicability</a>
+        </h3>
+<p id="section-9.1-1">TDCO is applicable to networks in which:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-9.1-2.1">
+            <p id="section-9.1-2.1.1">The TE tunnels that carry a significant share of the traffic on the
+links to be protected are controlled by the controller and included
+in TDCO by the optimization policy. TDCO can only relieve overload
+by moving traffic that it controls and is permitted by policy to
+move.<a href="#section-9.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.1-2.2">
+            <p id="section-9.1-2.2.1">The demand of each controlled TE tunnel can be measured in near real
+time, and the load of each link can be measured.<a href="#section-9.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.1-2.3">
+            <p id="section-9.1-2.3.1">Headends can change the path of a TE tunnel without disrupting its
+traffic, for example by make-before-break for RSVP-TE signalled TE
+tunnels or by a candidate path update for SR Policies.<a href="#section-9.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.1-2.4">
+            <p id="section-9.1-2.4.1">The topology offers alternate paths that satisfy the TE constraints
+of the TE tunnels to be moved.<a href="#section-9.1-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.1-2.5">
+            <p id="section-9.1-2.5.1">A single controller is responsible for the TE tunnels whose paths
+share a set of links. Independent controllers that steer TE tunnels
+across the same links without coordination can react to the same
+overload and move more traffic than is needed.<a href="#section-9.1-2.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-9.1-3">TDCO addresses sustained overload, measured over one or more
+collection intervals. It does not react to individual traffic bursts
+shorter than the collection interval. It also
+cannot relieve an overload that is caused mainly by dark traffic, by
+TE tunnels that are not controlled by the controller, or by TE tunnels
+that the optimization policy excludes from TDCO.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="configuration">
+<section id="section-9.2">
+        <h3 id="name-configuration">
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-configuration" class="section-name selfRef">Configuration</a>
+        </h3>
+<p id="section-9.2-1">An operator deploying TDCO needs to choose:<a href="#section-9.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.2-2">
+          <dt id="section-9.2-2.1">Collection interval:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.2-2.2">
+            <p id="section-9.2-2.2.1">The telemetry or flow-collection interval bounds how quickly an
+overload is detected. Shorter intervals improve responsiveness at
+the cost of additional collection load on the network devices, the
+collectors, and the controller.<a href="#section-9.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.2-2.3">Thresholds:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.2-2.4">
+            <p id="section-9.2-2.4.1">The trigger and target thresholds, configured globally or per link.
+The trigger threshold is typically set below link capacity, so that
+steering begins before traffic bursts cause loss. The gap between
+the trigger and target thresholds determines how far below the
+overload point a link is brought, and therefore how much headroom
+remains before the link triggers again.<a href="#section-9.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.2-2.5">Holding time:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.2-2.6">
+            <p id="section-9.2-2.6.1">The time, or number of consecutive measurement intervals, for which
+a threshold crossing must be sustained before it is acted upon.
+A longer holding time reduces sensitivity to transient
+load at the cost of slower response.<a href="#section-9.2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.2-2.7">Optimization policy:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.2-2.8">
+            <p id="section-9.2-2.8.1">Which TE tunnels are included in TDCO and which are excluded, as
+described in <a href="#policy" class="auto internal xref">Section 3.2</a>. Excluding TE tunnels reduces the traffic
+that TDCO can move, and therefore the overloads that it can
+relieve.<a href="#section-9.2-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="safety">
+<section id="section-9.3">
+        <h3 id="name-safety-controls">
+<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-safety-controls" class="section-name selfRef">Safety Controls</a>
+        </h3>
+<p id="section-9.3-1">The number of TE tunnels moved for a single overload event is
+determined by the reactive component. The controls below are
+independent of that per-event selection and limit TDCO's overall
+behavior, including when its inputs are wrong. An implementation
+should consider:<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.3-2">
+          <dt id="section-9.3-2.1">Sustained threshold crossing:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.3-2.2">
+            <p id="section-9.3-2.2.1">A link is treated as overloaded only when its link load remains
+above the trigger threshold for the configured holding time. A single
+sample or a short traffic burst therefore does not cause TE tunnels
+to be moved.<a href="#section-9.3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.3-2.3">Telemetry validity:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.3-2.4">
+            <p id="section-9.3-2.4.1">Optimization is suspended for the affected links or TE tunnels when
+telemetry is unavailable or stale, so that steering decisions are not
+made on data that no longer reflects the network. Where a TE tunnel
+has a signalled bandwidth reservation (see <a href="#rsvp-te" class="auto internal xref">Section 8.1</a>), the
+controller can use the signalled value as its demand while telemetry
+is unavailable. Suspension applies to discretionary path changes;
+mandatory placements are still performed, using the last known or
+signalled demand.<a href="#section-9.3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.3-2.5">In-flight accounting:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.3-2.6">
+            <p id="section-9.3-2.6.1">Telemetry lags behind path changes. Until subsequent measurements
+reflect the TE tunnels that have already been moved, the controller
+accounts for those moves so that it does not react
+again to load that is already being removed.<a href="#section-9.3-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.3-2.7">Re-route damping:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.3-2.8">
+            <p id="section-9.3-2.8.1">The frequency of path re-routing, either per TE tunnel or globally,
+can be limited to reduce network-wide churn and potential
+high-frequency oscillation.<a href="#section-9.3-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="control">
+<section id="section-9.4">
+        <h3 id="name-operator-control-and-visibi">
+<a href="#section-9.4" class="section-number selfRef">9.4. </a><a href="#name-operator-control-and-visibi" class="section-name selfRef">Operator Control and Visibility</a>
+        </h3>
+<span class="break"></span><dl class="dlParallel" id="section-9.4-1">
+          <dt id="section-9.4-1.1">Control:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.4-1.2">
+            <p id="section-9.4-1.2.1">Operators need to be able to disable TDCO, globally or for
+individual links, and to include TE tunnels in TDCO or exclude them
+from it through the optimization policy described in <a href="#policy" class="auto internal xref">Section 3.2</a>,
+for example to exclude TE tunnels that are pinned to an explicit
+path for service reasons.<a href="#section-9.4-1.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-9.4-1.3">Visibility:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.4-1.4">
+            <p id="section-9.4-1.4.1">Because individual actions are not approved by an operator, the
+controller needs to report the actions that it takes, including the
+overloaded link, its link load before and after the action, and the
+TE tunnels that were moved and their old and new paths. The
+controller also needs to report overloads that it cannot resolve, so
+that the operator can act on them, for example by adding capacity.<a href="#section-9.4-1.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-10">
+      <h2 id="name-security-considerations">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-10-1">This document uses existing protocols and does not introduce new
+protocol mechanisms. The security considerations of the mechanisms
+used to change TE tunnel paths apply: PCEP <span>[<a href="#RFC5440" class="cite xref">RFC5440</a>]</span>,
+stateful PCE <span>[<a href="#RFC8231" class="cite xref">RFC8231</a>]</span>, and PCE-initiated LSPs <span>[<a href="#RFC8281" class="cite xref">RFC8281</a>]</span>; BGP SR
+Policy <span>[<a href="#RFC9830" class="cite xref">RFC9830</a>]</span>; and NETCONF <span>[<a href="#RFC6241" class="cite xref">RFC6241</a>]</span>. The security
+considerations of BGP-LS <span>[<a href="#RFC9552" class="cite xref">RFC9552</a>]</span> and of the telemetry and
+flow-collection protocols in use also apply.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<p id="section-10-2">Because TDCO acts on measured data without operator approval of
+individual actions, the integrity of its inputs is particularly
+important:<a href="#section-10-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-10-3.1">
+          <p id="section-10-3.1.1">Falsified or manipulated telemetry, flow records, or PCEP
+performance metrics could cause the controller to re-route TE tunnels
+unnecessarily, to fail to alleviate a genuine overload, or to steer
+traffic toward links chosen by an attacker. Telemetry and
+flow-collection sessions need to be authenticated and integrity
+protected, for example by running gNMI over gRPC with TLS, or by
+using the TLS or DTLS transports for IPFIX described in <span>[<a href="#RFC7011" class="cite xref">RFC7011</a>]</span>.
+PCEP sessions can be protected using TLS <span>[<a href="#RFC8253" class="cite xref">RFC8253</a>]</span>. The input
+plausibility control in <a href="#safety" class="auto internal xref">Section 9.3</a> limits the effect of inputs that
+are falsified but well formed.<a href="#section-10-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-3.2">
+          <p id="section-10-3.2.1">Telemetry collectors, and any processing pipeline between them and
+the controller, are on the controller's decision path. Compromise of a collector
+or of the pipeline has the same effect as falsified telemetry, even
+when each individual telemetry session is protected. These components
+need the same level of protection as the controller itself.<a href="#section-10-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-3.3">
+          <p id="section-10-3.3.1">Compromise of the trigger and target threshold configuration could
+be used to induce steering or to suppress it. Protection of the
+configuration and management interfaces of the controller is therefore
+important.<a href="#section-10-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-3.4">
+          <p id="section-10-3.4.1">An attacker able to inject bursty traffic might attempt to provoke
+repeated re-routing. The sustained threshold crossing and re-route
+damping controls in <a href="#safety" class="auto internal xref">Section 9.3</a> limit the rate at which TDCO
+responds, and therefore limit the churn that such traffic can cause.<a href="#section-10-3.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-3.5">
+          <p id="section-10-3.5.1">A controller already controls the paths of the TE tunnels under its
+control, whichever mechanism it uses to change them. TDCO does not
+change that, but autonomous operation increases the importance of
+protecting the controller itself and the sessions it uses to change
+paths, whether PCEP, BGP, or NETCONF.<a href="#section-10-3.5.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-10-4">Per-tunnel demand and flow records reveal the traffic matrix of the
+network and, potentially, the traffic volumes of individual customers.
+This information needs to be protected in transit, as described above,
+and at rest in the controller and in the collectors, with access restricted to
+authorized operators and systems.<a href="#section-10-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-11">
+      <h2 id="name-iana-considerations">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-11-1">This document has no IANA actions.<a href="#section-11-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-12">
+      <h2 id="name-references">
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-12.1">
+        <h3 id="name-normative-references">
+<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
 <dl class="references">
-<dt id="RFC2119">[RFC2119]</dt>
-      <dd>
-<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dt id="RFC3209">[RFC3209]</dt>
+        <dd>
+<span class="refAuthor">Awduche, D.</span>, <span class="refAuthor">Berger, L.</span>, <span class="refAuthor">Gan, D.</span>, <span class="refAuthor">Li, T.</span>, <span class="refAuthor">Srinivasan, V.</span>, and <span class="refAuthor">G. Swallow</span>, <span class="refTitle">"RSVP-TE: Extensions to RSVP for LSP Tunnels"</span>, <span class="seriesInfo">RFC 3209</span>, <span class="seriesInfo">DOI 10.17487/RFC3209</span>, <time datetime="2001-12" class="refDate">December 2001</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3209">https://www.rfc-editor.org/rfc/rfc3209</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC8174">[RFC8174]</dt>
-    <dd>
-<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dt id="RFC9256">[RFC9256]</dt>
+      <dd>
+<span class="refAuthor">Filsfils, C.</span>, <span class="refAuthor">Talaulikar, K., Ed.</span>, <span class="refAuthor">Voyer, D.</span>, <span class="refAuthor">Bogdanov, A.</span>, and <span class="refAuthor">P. Mattes</span>, <span class="refTitle">"Segment Routing Policy Architecture"</span>, <span class="seriesInfo">RFC 9256</span>, <span class="seriesInfo">DOI 10.17487/RFC9256</span>, <time datetime="2022-07" class="refDate">July 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9256">https://www.rfc-editor.org/rfc/rfc9256</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
 </div>
-<div id="acknowledgments">
-<section id="appendix-A">
-      <h2 id="name-acknowledgments">
-<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
-      </h2>
-<p id="appendix-A-1">TODO acknowledge.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<div id="sec-informative-references">
+<section id="section-12.2">
+        <h3 id="name-informative-references">
+<a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="GNMI">[GNMI]</dt>
+        <dd>
+<span class="refAuthor">OpenConfig</span>, <span class="refTitle">"gRPC Network Management Interface (gNMI)"</span>, <span>&lt;<a href="https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md">https://github.com/openconfig/reference/blob/master/rpc/gnmi/gnmi-specification.md</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.gandhi-pce-pm">[I-D.gandhi-pce-pm]</dt>
+        <dd>
+<span class="refAuthor">Gandhi, R.</span>, <span class="refAuthor">Wen, B.</span>, <span class="refAuthor">Barth, C.</span>, <span class="refAuthor">Dhody, D.</span>, and <span class="refAuthor">A. Stone</span>, <span class="refTitle">"PCEP Extensions for Performance Measurement for SR-TE and MPLS-TE LSPs with Stateful PCE"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-gandhi-pce-pm-17</span>, <time datetime="2026-11-25" class="refDate">25 November 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-gandhi-pce-pm-17">https://datatracker.ietf.org/doc/html/draft-gandhi-pce-pm-17</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC3630">[RFC3630]</dt>
+        <dd>
+<span class="refAuthor">Katz, D.</span>, <span class="refAuthor">Kompella, K.</span>, and <span class="refAuthor">D. Yeung</span>, <span class="refTitle">"Traffic Engineering (TE) Extensions to OSPF Version 2"</span>, <span class="seriesInfo">RFC 3630</span>, <span class="seriesInfo">DOI 10.17487/RFC3630</span>, <time datetime="2003-10" class="refDate">October 2003</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3630">https://www.rfc-editor.org/rfc/rfc3630</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC4655">[RFC4655]</dt>
+        <dd>
+<span class="refAuthor">Farrel, A.</span>, <span class="refAuthor">Vasseur, J.-P.</span>, and <span class="refAuthor">J. Ash</span>, <span class="refTitle">"A Path Computation Element (PCE)-Based Architecture"</span>, <span class="seriesInfo">RFC 4655</span>, <span class="seriesInfo">DOI 10.17487/RFC4655</span>, <time datetime="2006-08" class="refDate">August 2006</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc4655">https://www.rfc-editor.org/rfc/rfc4655</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5036">[RFC5036]</dt>
+        <dd>
+<span class="refAuthor">Andersson, L., Ed.</span>, <span class="refAuthor">Minei, I., Ed.</span>, and <span class="refAuthor">B. Thomas, Ed.</span>, <span class="refTitle">"LDP Specification"</span>, <span class="seriesInfo">RFC 5036</span>, <span class="seriesInfo">DOI 10.17487/RFC5036</span>, <time datetime="2007-10" class="refDate">October 2007</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5036">https://www.rfc-editor.org/rfc/rfc5036</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5305">[RFC5305]</dt>
+        <dd>
+<span class="refAuthor">Li, T.</span> and <span class="refAuthor">H. Smit</span>, <span class="refTitle">"IS-IS Extensions for Traffic Engineering"</span>, <span class="seriesInfo">RFC 5305</span>, <span class="seriesInfo">DOI 10.17487/RFC5305</span>, <time datetime="2008-10" class="refDate">October 2008</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5305">https://www.rfc-editor.org/rfc/rfc5305</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5440">[RFC5440]</dt>
+        <dd>
+<span class="refAuthor">Vasseur, JP., Ed.</span> and <span class="refAuthor">JL. Le Roux, Ed.</span>, <span class="refTitle">"Path Computation Element (PCE) Communication Protocol (PCEP)"</span>, <span class="seriesInfo">RFC 5440</span>, <span class="seriesInfo">DOI 10.17487/RFC5440</span>, <time datetime="2009-03" class="refDate">March 2009</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5440">https://www.rfc-editor.org/rfc/rfc5440</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6241">[RFC6241]</dt>
+        <dd>
+<span class="refAuthor">Enns, R., Ed.</span>, <span class="refAuthor">Bjorklund, M., Ed.</span>, <span class="refAuthor">Schoenwaelder, J., Ed.</span>, and <span class="refAuthor">A. Bierman, Ed.</span>, <span class="refTitle">"Network Configuration Protocol (NETCONF)"</span>, <span class="seriesInfo">RFC 6241</span>, <span class="seriesInfo">DOI 10.17487/RFC6241</span>, <time datetime="2011-06" class="refDate">June 2011</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6241">https://www.rfc-editor.org/rfc/rfc6241</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7011">[RFC7011]</dt>
+        <dd>
+<span class="refAuthor">Claise, B., Ed.</span>, <span class="refAuthor">Trammell, B., Ed.</span>, and <span class="refAuthor">P. Aitken</span>, <span class="refTitle">"Specification of the IP Flow Information Export (IPFIX) Protocol for the Exchange of Flow Information"</span>, <span class="seriesInfo">STD 77</span>, <span class="seriesInfo">RFC 7011</span>, <span class="seriesInfo">DOI 10.17487/RFC7011</span>, <time datetime="2013-09" class="refDate">September 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7011">https://www.rfc-editor.org/rfc/rfc7011</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7471">[RFC7471]</dt>
+        <dd>
+<span class="refAuthor">Giacalone, S.</span>, <span class="refAuthor">Ward, D.</span>, <span class="refAuthor">Drake, J.</span>, <span class="refAuthor">Atlas, A.</span>, and <span class="refAuthor">S. Previdi</span>, <span class="refTitle">"OSPF Traffic Engineering (TE) Metric Extensions"</span>, <span class="seriesInfo">RFC 7471</span>, <span class="seriesInfo">DOI 10.17487/RFC7471</span>, <time datetime="2015-03" class="refDate">March 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7471">https://www.rfc-editor.org/rfc/rfc7471</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7950">[RFC7950]</dt>
+        <dd>
+<span class="refAuthor">Bjorklund, M., Ed.</span>, <span class="refTitle">"The YANG 1.1 Data Modeling Language"</span>, <span class="seriesInfo">RFC 7950</span>, <span class="seriesInfo">DOI 10.17487/RFC7950</span>, <time datetime="2016-08" class="refDate">August 2016</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7950">https://www.rfc-editor.org/rfc/rfc7950</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8051">[RFC8051]</dt>
+        <dd>
+<span class="refAuthor">Zhang, X., Ed.</span> and <span class="refAuthor">I. Minei, Ed.</span>, <span class="refTitle">"Applicability of a Stateful Path Computation Element (PCE)"</span>, <span class="seriesInfo">RFC 8051</span>, <span class="seriesInfo">DOI 10.17487/RFC8051</span>, <time datetime="2017-01" class="refDate">January 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8051">https://www.rfc-editor.org/rfc/rfc8051</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8231">[RFC8231]</dt>
+        <dd>
+<span class="refAuthor">Crabbe, E.</span>, <span class="refAuthor">Minei, I.</span>, <span class="refAuthor">Medved, J.</span>, and <span class="refAuthor">R. Varga</span>, <span class="refTitle">"Path Computation Element Communication Protocol (PCEP) Extensions for Stateful PCE"</span>, <span class="seriesInfo">RFC 8231</span>, <span class="seriesInfo">DOI 10.17487/RFC8231</span>, <time datetime="2017-09" class="refDate">September 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8231">https://www.rfc-editor.org/rfc/rfc8231</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8253">[RFC8253]</dt>
+        <dd>
+<span class="refAuthor">Lopez, D.</span>, <span class="refAuthor">Gonzalez de Dios, O.</span>, <span class="refAuthor">Wu, Q.</span>, and <span class="refAuthor">D. Dhody</span>, <span class="refTitle">"PCEPS: Usage of TLS to Provide a Secure Transport for the Path Computation Element Communication Protocol (PCEP)"</span>, <span class="seriesInfo">RFC 8253</span>, <span class="seriesInfo">DOI 10.17487/RFC8253</span>, <time datetime="2017-10" class="refDate">October 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8253">https://www.rfc-editor.org/rfc/rfc8253</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8281">[RFC8281]</dt>
+        <dd>
+<span class="refAuthor">Crabbe, E.</span>, <span class="refAuthor">Minei, I.</span>, <span class="refAuthor">Sivabalan, S.</span>, and <span class="refAuthor">R. Varga</span>, <span class="refTitle">"Path Computation Element Communication Protocol (PCEP) Extensions for PCE-Initiated LSP Setup in a Stateful PCE Model"</span>, <span class="seriesInfo">RFC 8281</span>, <span class="seriesInfo">DOI 10.17487/RFC8281</span>, <time datetime="2017-12" class="refDate">December 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8281">https://www.rfc-editor.org/rfc/rfc8281</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8426">[RFC8426]</dt>
+        <dd>
+<span class="refAuthor">Sitaraman, H., Ed.</span>, <span class="refAuthor">Beeram, V.</span>, <span class="refAuthor">Minei, I.</span>, and <span class="refAuthor">S. Sivabalan</span>, <span class="refTitle">"Recommendations for RSVP-TE and Segment Routing (SR) Label Switched Path (LSP) Coexistence"</span>, <span class="seriesInfo">RFC 8426</span>, <span class="seriesInfo">DOI 10.17487/RFC8426</span>, <time datetime="2018-07" class="refDate">July 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8426">https://www.rfc-editor.org/rfc/rfc8426</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8570">[RFC8570]</dt>
+        <dd>
+<span class="refAuthor">Ginsberg, L., Ed.</span>, <span class="refAuthor">Previdi, S., Ed.</span>, <span class="refAuthor">Giacalone, S.</span>, <span class="refAuthor">Ward, D.</span>, <span class="refAuthor">Drake, J.</span>, and <span class="refAuthor">Q. Wu</span>, <span class="refTitle">"IS-IS Traffic Engineering (TE) Metric Extensions"</span>, <span class="seriesInfo">RFC 8570</span>, <span class="seriesInfo">DOI 10.17487/RFC8570</span>, <time datetime="2019-03" class="refDate">March 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8570">https://www.rfc-editor.org/rfc/rfc8570</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8571">[RFC8571]</dt>
+        <dd>
+<span class="refAuthor">Ginsberg, L., Ed.</span>, <span class="refAuthor">Previdi, S.</span>, <span class="refAuthor">Wu, Q.</span>, <span class="refAuthor">Tantsura, J.</span>, and <span class="refAuthor">C. Filsfils</span>, <span class="refTitle">"BGP - Link State (BGP-LS) Advertisement of IGP Traffic Engineering Performance Metric Extensions"</span>, <span class="seriesInfo">RFC 8571</span>, <span class="seriesInfo">DOI 10.17487/RFC8571</span>, <time datetime="2019-03" class="refDate">March 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8571">https://www.rfc-editor.org/rfc/rfc8571</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8664">[RFC8664]</dt>
+        <dd>
+<span class="refAuthor">Sivabalan, S.</span>, <span class="refAuthor">Filsfils, C.</span>, <span class="refAuthor">Tantsura, J.</span>, <span class="refAuthor">Henderickx, W.</span>, and <span class="refAuthor">J. Hardwick</span>, <span class="refTitle">"Path Computation Element Communication Protocol (PCEP) Extensions for Segment Routing"</span>, <span class="seriesInfo">RFC 8664</span>, <span class="seriesInfo">DOI 10.17487/RFC8664</span>, <time datetime="2019-12" class="refDate">December 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8664">https://www.rfc-editor.org/rfc/rfc8664</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9350">[RFC9350]</dt>
+        <dd>
+<span class="refAuthor">Psenak, P., Ed.</span>, <span class="refAuthor">Hegde, S.</span>, <span class="refAuthor">Filsfils, C.</span>, <span class="refAuthor">Talaulikar, K.</span>, and <span class="refAuthor">A. Gulko</span>, <span class="refTitle">"IGP Flexible Algorithm"</span>, <span class="seriesInfo">RFC 9350</span>, <span class="seriesInfo">DOI 10.17487/RFC9350</span>, <time datetime="2023-02" class="refDate">February 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9350">https://www.rfc-editor.org/rfc/rfc9350</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9522">[RFC9522]</dt>
+        <dd>
+<span class="refAuthor">Farrel, A., Ed.</span>, <span class="refTitle">"Overview and Principles of Internet Traffic Engineering"</span>, <span class="seriesInfo">RFC 9522</span>, <span class="seriesInfo">DOI 10.17487/RFC9522</span>, <time datetime="2024-01" class="refDate">January 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9522">https://www.rfc-editor.org/rfc/rfc9522</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9552">[RFC9552]</dt>
+        <dd>
+<span class="refAuthor">Talaulikar, K., Ed.</span>, <span class="refTitle">"Distribution of Link-State and Traffic Engineering Information Using BGP"</span>, <span class="seriesInfo">RFC 9552</span>, <span class="seriesInfo">DOI 10.17487/RFC9552</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9552">https://www.rfc-editor.org/rfc/rfc9552</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9603">[RFC9603]</dt>
+        <dd>
+<span class="refAuthor">Li, C., Ed.</span>, <span class="refAuthor">Kaladharan, P.</span>, <span class="refAuthor">Sivabalan, S.</span>, <span class="refAuthor">Koldychev, M.</span>, and <span class="refAuthor">Y. Zhu</span>, <span class="refTitle">"Path Computation Element Communication Protocol (PCEP) Extensions for IPv6 Segment Routing"</span>, <span class="seriesInfo">RFC 9603</span>, <span class="seriesInfo">DOI 10.17487/RFC9603</span>, <time datetime="2024-07" class="refDate">July 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9603">https://www.rfc-editor.org/rfc/rfc9603</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9830">[RFC9830]</dt>
+        <dd>
+<span class="refAuthor">Previdi, S.</span>, <span class="refAuthor">Filsfils, C.</span>, <span class="refAuthor">Talaulikar, K., Ed.</span>, <span class="refAuthor">Mattes, P.</span>, and <span class="refAuthor">D. Jain</span>, <span class="refTitle">"Advertising Segment Routing Policies in BGP"</span>, <span class="seriesInfo">RFC 9830</span>, <span class="seriesInfo">DOI 10.17487/RFC9830</span>, <time datetime="2025-09" class="refDate">September 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9830">https://www.rfc-editor.org/rfc/rfc9830</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9857">[RFC9857]</dt>
+      <dd>
+<span class="refAuthor">Previdi, S.</span>, <span class="refAuthor">Talaulikar, K., Ed.</span>, <span class="refAuthor">Dong, J.</span>, <span class="refAuthor">Gredler, H.</span>, and <span class="refAuthor">J. Tantsura</span>, <span class="refTitle">"Advertisement of Segment Routing Policies Using BGP - Link State"</span>, <span class="seriesInfo">RFC 9857</span>, <span class="seriesInfo">DOI 10.17487/RFC9857</span>, <time datetime="2025-10" class="refDate">October 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9857">https://www.rfc-editor.org/rfc/rfc9857</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
 </section>
 </div>
 <div id="authors-addresses">
-<section id="appendix-B">
+<section id="appendix-A">
       <h2 id="name-authors-address">
 <a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
       </h2>
@@ -1238,7 +2260,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <div dir="auto" class="left"><span class="org">Nokia</span></div>
 <div class="email">
 <span>Email:</span>
-<a href="mailto:andrew.stone@nwokia.com" class="email">andrew.stone@nwokia.com</a>
+<a href="mailto:andrew.stone@nokia.com" class="email">andrew.stone@nokia.com</a>
 </div>
 </address>
 </section>

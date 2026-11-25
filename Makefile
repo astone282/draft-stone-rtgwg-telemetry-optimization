@@ -1,3 +1,5 @@
+export UPLOAD_EMAIL ?= andrew.stone@nokia.com
+
 LIBDIR := lib
 -include $(LIBDIR)/main.mk
 
